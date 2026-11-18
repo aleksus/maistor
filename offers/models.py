@@ -9,7 +9,7 @@ class Offer(models.Model):
         WITHDRAWN = "withdrawn", "Оттеглена"
 
     job_request = models.ForeignKey(
-        "jobs.JobRequest",
+        "requests.JobRequest",
         on_delete=models.CASCADE,
         related_name="offers"
     )
