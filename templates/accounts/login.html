@@ -1,0 +1,16 @@
+<h2>Вход в Majstor.bg</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Вход
+    </button>
+</form>
+
+<p>
+    Нямаш профил?
+    <a href="{% url 'register' %}">Регистрация</a>
+</p>
