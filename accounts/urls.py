@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -12,4 +13,9 @@ urlpatterns = [
         name="master_profile_setup"
     ),
     path("masters/", views.master_list, name="master_list"),
+    path(
+        "masters/<int:pk>/",
+        views.master_detail,
+        name="master_detail"
+    ),
 ]

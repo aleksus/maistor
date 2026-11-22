@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from services.models import ServiceCategory, Service
 from .forms import (
@@ -190,3 +190,34 @@ def master_list(request):
     }
 
     return render(request, "accounts/master_list.html", context)
+
+
+def master_detail(request, pk):
+    master = get_object_or_404(
+        MasterProfile.objects.select_related("user").prefetch_related(
+            "services",
+            "services__category",
+            "offers__review"
+        ).annotate(
+            avg_rating=Avg("offers__review__rating"),
+            review_count=Count("offers__review", distinct=True)
+        ),
+        pk=pk,
+        user__is_active=True
+    )
+
+    reviews = master.offers.filter(
+        status="accepted",
+        review__isnull=False
+    ).select_related(
+        "review",
+        "job_request",
+        "job_request__client"
+    ).order_by("-review__created_at")
+
+    context = {
+        "master": master,
+        "reviews": reviews,
+    }
+
+    return render(request, "accounts/master_detail.html", context)

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ master.user.username }} | Majstor.bg</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            color: #333;
+            margin: 0;
+        }
+
+        header {
+            background: #263746;
+            color: white;
+            padding: 20px 8%;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .profile, .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+        }
+
+        h1, h2 {
+            color: #263746;
+        }
+
+        .services {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .service {
+            background: #edf1f5;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .review {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+
+        .review:last-child {
+            border-bottom: none;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        .button {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="{% url 'home' %}">Majstor.bg</a>
+    |
+    <a href="{% url 'master_list' %}">Всички майстори</a>
+</header>
+
+<div class="container">
+
+    <section class="profile">
+
+        <div class="profile-header">
+
+            {% if master.user.profile_picture %}
+                <img
+                    src="{{ master.user.profile_picture.url }}"
+                    class="profile-image"
+                    alt="Профилна снимка"
+                >
+            {% else %}
+                <div class="profile-image"></div>
+            {% endif %}
+
+            <div>
+                <h1>{{ master.user.username }}</h1>
+
+                <p>{{ master.city }}</p>
+
+                {% if master.is_verified %}
+                    <p>Проверен майстор</p>
+                {% endif %}
+
+                <p>
+                    {% if master.avg_rating %}
+                        ⭐ {{ master.avg_rating|floatformat:1 }}/5
+                        ({{ master.review_count }} отзива)
+                    {% else %}
+                        Все още няма оценки
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="section">
+        <h2>За майстора</h2>
+
+        <p>{{ master.description|linebreaks }}</p>
+
+        <p>
+            <strong>Опит:</strong>
+            {{ master.experience_years }} години
+        </p>
+
+        <p>
+            <strong>Град:</strong>
+            {{ master.city }}
+        </p>
+
+        {% if master.address %}
+            <p>
+                <strong>Адрес:</strong>
+                {{ master.address }}
+            </p>
+        {% endif %}
+
+        {% if master.price_from %}
+            <p class="price">
+                От {{ master.price_from }} лв.
+            </p>
+        {% else %}
+            <p>Началната цена не е посочена.</p>
+        {% endif %}
+    </section>
+
+    <section class="section">
+        <h2>Предлагани услуги</h2>
+
+        <div class="services">
+            {% for service in master.services.all %}
+                <div class="service">
+                    {{ service.name }}
+                    ({{ service.category.name }})
+                </div>
+            {% empty %}
+                <p>Няма добавени услуги.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Отзиви от клиенти</h2>
+
+        {% for offer in reviews %}
+            <div class="review">
+
+                <strong>{{ offer.job_request.client.username }}</strong>
+
+                <p>
+                    ⭐ {{ offer.review.rating }}/5
+                </p>
+
+                <p>{{ offer.review.comment|default:"Няма написан коментар." }}</p>
+
+                <small>
+                    {{ offer.review.created_at|date:"d.m.Y" }}
+                </small>
+
+            </div>
+        {% empty %}
+            <p>Все още няма отзиви за този майстор.</p>
+        {% endfor %}
+
+    </section>
+
+    <a href="{% url 'master_list' %}" class="button">
+        Назад към майсторите
+    </a>
+
+</div>
+
+</body>
+</html>

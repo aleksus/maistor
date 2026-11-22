@@ -119,7 +119,11 @@
     {% for master in masters %}
 
         <article>
-            <h3>{{ master.user.username }}</h3>
+            <h3>
+                <a href="{% url 'master_detail' master.pk %}">
+                    {{ master.user.username }}
+                </a>
+            </h3>
 
             <p><strong>Град:</strong> {{ master.city }}</p>
 
