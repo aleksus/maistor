@@ -11,4 +11,5 @@ urlpatterns = [
         views.master_profile_setup,
         name="master_profile_setup"
     ),
+    path("masters/", views.master_list, name="master_list"),
 ]

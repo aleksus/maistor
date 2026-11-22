@@ -2,8 +2,11 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import transaction
-from django.shortcuts import render, redirect
+from django.db.models import Avg, Count
+from django.shortcuts import redirect
+from django.shortcuts import render
 
+from services.models import ServiceCategory, Service
 from .forms import (
     UserRegisterForm,
     MasterProfileForm,
@@ -12,7 +15,6 @@ from .models import MasterProfile, ClientProfile
 
 
 def register(request):
-
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
 
@@ -44,7 +46,6 @@ def register(request):
         "accounts/register.html",
         {"form": form}
     )
-
 
 
 def master_profile_setup(request):
@@ -107,3 +108,85 @@ def user_logout(request):
         return redirect("login")
 
     return redirect("home")
+
+
+def master_list(request):
+    masters = MasterProfile.objects.filter(
+        user__is_active=True
+    ).select_related(
+        "user"
+    ).prefetch_related(
+        "services",
+        "services__category"
+    ).annotate(
+        avg_rating=Avg("offers__review__rating"),
+        review_count=Count("offers__review", distinct=True)
+    )
+
+    # Филтри от GET параметрите
+    city = request.GET.get("city", "").strip()
+    category_id = request.GET.get("category", "").strip()
+    service_id = request.GET.get("service", "").strip()
+    min_experience = request.GET.get("min_experience", "").strip()
+    max_price = request.GET.get("max_price", "").strip()
+    search = request.GET.get("search", "").strip()
+
+    if city:
+        masters = masters.filter(city__icontains=city)
+
+    if category_id.isdigit():
+        masters = masters.filter(
+            services__category_id=int(category_id)
+        )
+
+    if service_id.isdigit():
+        masters = masters.filter(
+            services__id=int(service_id)
+        )
+
+    if min_experience.isdigit():
+        masters = masters.filter(
+            experience_years__gte=int(min_experience)
+        )
+
+    if max_price:
+        try:
+            masters = masters.filter(
+                price_from__lte=float(max_price)
+            )
+        except ValueError:
+            pass
+
+    if search:
+        masters = masters.filter(
+            user__username__icontains=search
+        )
+
+    masters = masters.distinct()
+
+    # Сортиране
+    sort = request.GET.get("sort", "rating")
+
+    if sort == "experience":
+        masters = masters.order_by("-experience_years")
+    elif sort == "price":
+        masters = masters.order_by("price_from")
+    elif sort == "rating":
+        masters = masters.order_by("-avg_rating", "-review_count")
+    else:
+        masters = masters.order_by("-id")
+
+    context = {
+        "masters": masters,
+        "categories": ServiceCategory.objects.all(),
+        "services": Service.objects.select_related("category").all(),
+        "selected_city": city,
+        "selected_category": category_id,
+        "selected_service": service_id,
+        "selected_min_experience": min_experience,
+        "selected_max_price": max_price,
+        "selected_search": search,
+        "selected_sort": sort,
+    }
+
+    return render(request, "accounts/master_list.html", context)

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог на майстори | Majstor.bg</title>
+</head>
+<body>
+
+    <h1>Намери майстор</h1>
+
+    <form method="GET">
+
+        <p>
+            <label>Търсене:</label>
+            <input
+                type="text"
+                name="search"
+                value="{{ selected_search }}"
+                placeholder="Име на майстор"
+            >
+        </p>
+
+        <p>
+            <label>Град:</label>
+            <input
+                type="text"
+                name="city"
+                value="{{ selected_city }}"
+                placeholder="Например Бургас"
+            >
+        </p>
+
+        <p>
+            <label>Категория:</label>
+            <select name="category">
+                <option value="">Всички категории</option>
+
+                {% for category in categories %}
+                    <option
+                        value="{{ category.id }}"
+                        {% if selected_category == category.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </p>
+
+        <p>
+            <label>Услуга:</label>
+            <select name="service">
+                <option value="">Всички услуги</option>
+
+                {% for service in services %}
+                    <option
+                        value="{{ service.id }}"
+                        {% if selected_service == service.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ service.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </p>
+
+        <p>
+            <label>Минимален опит (години):</label>
+            <input
+                type="number"
+                name="min_experience"
+                min="0"
+                value="{{ selected_min_experience }}"
+            >
+        </p>
+
+        <p>
+            <label>Максимална начална цена:</label>
+            <input
+                type="number"
+                name="max_price"
+                min="0"
+                step="0.01"
+                value="{{ selected_max_price }}"
+            >
+        </p>
+
+        <p>
+            <label>Сортиране:</label>
+            <select name="sort">
+                <option value="rating"
+                    {% if selected_sort == "rating" %}selected{% endif %}>
+                    По рейтинг
+                </option>
+
+                <option value="experience"
+                    {% if selected_sort == "experience" %}selected{% endif %}>
+                    По опит
+                </option>
+
+                <option value="price"
+                    {% if selected_sort == "price" %}selected{% endif %}>
+                    По цена
+                </option>
+            </select>
+        </p>
+
+        <button type="submit">Търси</button>
+        <a href="{% url 'master_list' %}">Изчисти филтрите</a>
+
+    </form>
+
+    <hr>
+
+    <h2>Резултати</h2>
+
+    {% for master in masters %}
+
+        <article>
+            <h3>{{ master.user.username }}</h3>
+
+            <p><strong>Град:</strong> {{ master.city }}</p>
+
+            <p>
+                <strong>Опит:</strong>
+                {{ master.experience_years }} години
+            </p>
+
+            <p>
+                <strong>Начална цена:</strong>
+                {% if master.price_from %}
+                    {{ master.price_from }} лв.
+                {% else %}
+                    Не е посочена
+                {% endif %}
+            </p>
+
+            <p>
+                <strong>Рейтинг:</strong>
+                {% if master.avg_rating %}
+                    {{ master.avg_rating|floatformat:1 }}/5
+                    ({{ master.review_count }} отзива)
+                {% else %}
+                    Все още няма оценки
+                {% endif %}
+            </p>
+
+            <p><strong>Описание:</strong> {{ master.description|truncatewords:30 }}</p>
+
+            <p><strong>Услуги:</strong></p>
+            <ul>
+                {% for service in master.services.all %}
+                    <li>{{ service.name }}</li>
+                {% empty %}
+                    <li>Няма добавени услуги</li>
+                {% endfor %}
+            </ul>
+        </article>
+
+        <hr>
+
+    {% empty %}
+        <p>Няма намерени майстори, отговарящи на зададените критерии.</p>
+    {% endfor %}
+
+</body>
+</html>
