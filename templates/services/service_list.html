@@ -1,0 +1,20 @@
+<h1>{{ category.name }}</h1>
+<p>{{ category.description }}</p>
+<h2>Услуги в категорията</h2>
+<ul>
+    {% for service in services %}
+
+        <li>
+            <h3>{{ service.name }}</h3>
+            <p>{{ service.description }}</p>
+        </li>
+
+    {% empty %}
+
+        <li>Няма добавени услуги.</li>
+
+    {% endfor %}
+</ul>
+<a href="{% url 'category_list' %}">
+    Назад към категориите
+</a>

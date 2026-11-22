@@ -1,0 +1,29 @@
+<h1>Категории услуги</h1>
+
+<div>
+    {% for category in categories %}
+
+        <div>
+            {% if category.image %}
+                <img
+                        src="{{ category.image.url }}"
+                        width="150"
+                        alt="{{ category.name }}"
+                >
+            {% endif %}
+
+            <h3>{{ category.name }}</h3>
+
+            <p>{{ category.description }}</p>
+
+            <a href="{% url 'service_list' category.id %}">
+                Разгледай услугите
+            </a>
+        </div>
+
+    {% empty %}
+
+        <p>Все още няма добавени категории.</p>
+
+    {% endfor %}
+</div>
