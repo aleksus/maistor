@@ -15,12 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.http import HttpResponse
+from django.shortcuts import render
 from django.urls import path, include
+
+from services.models import ServiceCategory
 
 
 def home(request):
-    return HttpResponse("Добре дошли в Majstor.bg!")
+    categories = ServiceCategory.objects.all()
+
+    return render(request, "home.html", {
+        "categories": categories
+    })
 
 
 urlpatterns = [
