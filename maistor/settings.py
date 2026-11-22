@@ -34,6 +34,7 @@ PROJECT_APPS = [
     "requests",
     "reviews",
     "services",
+    "favorites",
 ]
 
 INSTALLED_APPS = [

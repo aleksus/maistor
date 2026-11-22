@@ -102,6 +102,11 @@
 </header>
 
 <div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
 
     <section class="profile">
 
@@ -109,9 +114,9 @@
 
             {% if master.user.profile_picture %}
                 <img
-                    src="{{ master.user.profile_picture.url }}"
-                    class="profile-image"
-                    alt="Профилна снимка"
+                        src="{{ master.user.profile_picture.url }}"
+                        class="profile-image"
+                        alt="Профилна снимка"
                 >
             {% else %}
                 <div class="profile-image"></div>
@@ -134,6 +139,33 @@
                         Все още няма оценки
                     {% endif %}
                 </p>
+
+                {% if user.is_authenticated and user.role == "client" %}
+
+                    <form method="POST" action="{% url 'toggle_favorite' master.id %}">
+                        {% csrf_token %}
+
+                        {% if is_favorite %}
+                            <button type="submit">
+                                Премахни от любими
+                            </button>
+                        {% else %}
+                            <button type="submit">
+                                Добави в любими
+                            </button>
+                        {% endif %}
+                    </form>
+
+                {% elif not user.is_authenticated %}
+
+                    <p>
+                        <a href="{% url 'login' %}">
+                            Влез в профила си
+                        </a>,
+                        за да добавяш майстори в любими.
+                    </p>
+
+                {% endif %}
             </div>
 
         </div>

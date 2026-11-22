@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('accounts/', include('accounts.urls')),
+    path("favorites/", include("favorites.urls")),
     path('offers/', include('offers.urls')),
     path('requests/', include('requests.urls')),
     path('reviews/', include('reviews.urls')),

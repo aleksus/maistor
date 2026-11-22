@@ -6,6 +6,7 @@ from django.db.models import Avg, Count
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 
+from favorites.models import Favorite
 from services.models import ServiceCategory, Service
 from .forms import (
     UserRegisterForm,
@@ -206,6 +207,14 @@ def master_detail(request, pk):
         user__is_active=True
     )
 
+    is_favorite = False
+
+    if request.user.is_authenticated and request.user.role == "client":
+        is_favorite = Favorite.objects.filter(
+            client=request.user,
+            master=master
+        ).exists()
+
     reviews = master.offers.filter(
         status="accepted",
         review__isnull=False
@@ -218,6 +227,7 @@ def master_detail(request, pk):
     context = {
         "master": master,
         "reviews": reviews,
+        "is_favorite": is_favorite,
     }
 
     return render(request, "accounts/master_detail.html", context)
