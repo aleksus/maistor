@@ -7,4 +7,9 @@ urlpatterns = [
         views.toggle_favorite,
         name="toggle_favorite"
     ),
+    path(
+        "",
+        views.favorite_list,
+        name="favorite_list"
+    ),
 ]

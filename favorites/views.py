@@ -1,7 +1,7 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.models import MasterProfile
 from .models import Favorite
@@ -40,3 +40,26 @@ def toggle_favorite(request, master_id):
         messages.success(request, "Майсторът беше добавен в любими.")
 
     return redirect("master_detail", pk=master_id)
+
+
+@login_required
+def favorite_list(request):
+    if request.user.role != "client":
+        messages.error(
+            request,
+            "Тази страница е достъпна само за клиенти."
+        )
+        return redirect("home")
+
+    favorites = Favorite.objects.filter(
+        client=request.user
+    ).select_related(
+        "master",
+        "master__user"
+    ).prefetch_related(
+        "master__services"
+    ).order_by("-created_at")
+
+    return render(request, "favorites/favorite_list.html", {
+        "favorites": favorites
+    })
