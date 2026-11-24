@@ -153,15 +153,17 @@
     <nav>
         <a href="{% url 'master_list' %}">Майстори</a>
 
+        {% if user.is_authenticated and user.role == "master" %}
+            <a href="{% url 'available_requests' %}">Свободни заявки</a>
+        {% endif %}
+
         {% if user.is_authenticated and user.role == "client" %}
             <a href="{% url 'create_job' %}">Публикувай заявка</a>
             <a href="{% url 'my_jobs' %}">Моите заявки</a>
         {% endif %}
 
         {% if user.is_authenticated and user.role == "client" %}
-            <a href="{% url 'favorite_list' %}">
-                Моите любими
-            </a>
+            <a href="{% url 'favorite_list' %}">Моите любими</a>
         {% endif %}
 
         {% if user.is_authenticated %}

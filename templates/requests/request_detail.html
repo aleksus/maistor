@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ job.title }} | Majstor.bg</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            margin: 0;
+            color: #333;
+        }
+
+        header {
+            background: #263746;
+            padding: 20px 8%;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #263746;
+        }
+
+        .images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .images img {
+            width: 220px;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="{% url 'home' %}">Majstor.bg</a>
+</header>
+
+<div class="container">
+
+    <section class="section">
+
+        <h1>{{ job.title }}</h1>
+
+        <p>{{ job.description|linebreaks }}</p>
+
+        <p>
+            <strong>Град:</strong>
+            {{ job.city }}
+        </p>
+
+        {% if job.address %}
+            <p>
+                <strong>Адрес:</strong>
+                {{ job.address }}
+            </p>
+        {% endif %}
+
+        <p>
+            <strong>Клиент:</strong>
+            {{ job.client.username }}
+        </p>
+
+        <p>
+            <strong>Бюджет:</strong>
+            {% if job.budget_min %}
+                От {{ job.budget_min }} лв.
+            {% endif %}
+
+            {% if job.budget_max %}
+                до {{ job.budget_max }} лв.
+            {% endif %}
+
+            {% if not job.budget_min and not job.budget_max %}
+                Не е посочен
+            {% endif %}
+        </p>
+
+        {% if job.deadline %}
+            <p>
+                <strong>Краен срок:</strong>
+                {{ job.deadline|date:"d.m.Y" }}
+            </p>
+        {% endif %}
+
+    </section>
+
+    <section class="section">
+
+        <h2>Необходими услуги</h2>
+
+        {% for service in job.services.all %}
+            <p>{{ service.name }} – {{ service.category.name }}</p>
+        {% empty %}
+            <p>Няма посочени услуги.</p>
+        {% endfor %}
+
+    </section>
+
+    <section class="section">
+
+        <h2>Снимки на обекта</h2>
+
+        <div class="images">
+
+            {% for image in job.images.all %}
+                <img src="{{ image.image.url }}" alt="Снимка на обекта">
+            {% empty %}
+                <p>Клиентът не е добавил снимки.</p>
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    <a href="{% url 'available_requests' %}" class="button">
+        Назад към заявките
+    </a>
+
+</div>
+
+</body>
+</html>

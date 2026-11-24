@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Свободни заявки | Majstor.bg</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            margin: 0;
+            color: #333;
+        }
+
+        header {
+            background: #263746;
+            color: white;
+            padding: 20px 8%;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .filters, .request-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filters input, .filters select {
+            padding: 12px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .request-card h2 {
+            color: #263746;
+        }
+
+        .button {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            padding: 12px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .services span {
+            display: inline-block;
+            background: #edf1f5;
+            padding: 7px 10px;
+            border-radius: 5px;
+            margin: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="{% url 'home' %}">Majstor.bg</a>
+</header>
+
+<div class="container">
+
+    <h1>Свободни заявки за ремонт</h1>
+
+    <p>Разгледай проектите и избери за кои можеш да изпратиш оферта.</p>
+
+    <form method="GET" class="filters">
+
+        <input
+                type="text"
+                name="search"
+                placeholder="Търси по заглавие"
+                value="{{ selected_search }}"
+        >
+
+        <input
+                type="text"
+                name="city"
+                placeholder="Град"
+                value="{{ selected_city }}"
+        >
+
+        <select name="service">
+            <option value="">Всички услуги</option>
+
+            {% for service in services %}
+                <option
+                        value="{{ service.id }}"
+                        {% if selected_service == service.id|stringformat:"s" %}
+                        selected
+                        {% endif %}
+                >
+                    {{ service.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Филтрирай</button>
+
+        <a href="{% url 'available_requests' %}">Изчисти</a>
+
+    </form>
+
+    {% for job in requests %}
+
+        <div class="request-card">
+
+            <h2>{{ job.title }}</h2>
+
+            <p>{{ job.description|truncatewords:35 }}</p>
+
+            <p>
+                <strong>Град:</strong>
+                {{ job.city }}
+            </p>
+
+            <p>
+                <strong>Клиент:</strong>
+                {{ job.client.username }}
+            </p>
+
+            <p>
+                <strong>Бюджет:</strong>
+
+                {% if job.budget_min %}
+                    От {{ job.budget_min }} лв.
+                {% endif %}
+
+                {% if job.budget_max %}
+                    до {{ job.budget_max }} лв.
+                {% endif %}
+
+                {% if not job.budget_min and not job.budget_max %}
+                    Не е посочен
+                {% endif %}
+            </p>
+
+            <div class="services">
+                {% for service in job.services.all %}
+                    <span>{{ service.name }}</span>
+                {% endfor %}
+            </div>
+
+            <p>
+                <strong>Публикувана:</strong>
+                {{ job.created_at|date:"d.m.Y" }}
+            </p>
+
+            <a
+                    href="{% url 'request_detail' job.pk %}"
+                    class="button"
+            >
+                Виж подробности
+            </a>
+
+        </div>
+
+    {% empty %}
+
+        <div class="request-card">
+            <h2>Няма налични заявки</h2>
+            <p>В момента няма заявки, отговарящи на зададените критерии.</p>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
