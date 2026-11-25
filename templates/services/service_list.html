@@ -1,20 +1,24 @@
-<h1>{{ category.name }}</h1>
-<p>{{ category.description }}</p>
-<h2>Услуги в категорията</h2>
-<ul>
-    {% for service in services %}
+{% extends "base.html" %}
 
-        <li>
-            <h3>{{ service.name }}</h3>
-            <p>{{ service.description }}</p>
-        </li>
+{% block content %}
+    <h1>{{ category.name }}</h1>
+    <p>{{ category.description }}</p>
+    <h2>Услуги в категорията</h2>
+    <ul>
+        {% for service in services %}
 
-    {% empty %}
+            <li>
+                <h3>{{ service.name }}</h3>
+                <p>{{ service.description }}</p>
+            </li>
 
-        <li>Няма добавени услуги.</li>
+        {% empty %}
 
-    {% endfor %}
-</ul>
-<a href="{% url 'category_list' %}">
-    Назад към категориите
-</a>
+            <li>Няма добавени услуги.</li>
+
+        {% endfor %}
+    </ul>
+    <a href="{% url 'category_list' %}">
+        Назад към категориите
+    </a>
+{% endblock %}

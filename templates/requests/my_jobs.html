@@ -1,67 +1,6 @@
-<!DOCTYPE html>
-<html lang="bg">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моите заявки | Majstor.bg</title>
+{% extends "base.html" %}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f6f8;
-            margin: 0;
-            color: #333;
-        }
-
-        header {
-            background: #263746;
-            padding: 20px 8%;
-        }
-
-        header a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 35px auto;
-            padding: 0 20px;
-        }
-
-        .job-card {
-            background: white;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-        }
-
-        .job-card h2 {
-            color: #263746;
-        }
-
-        .button {
-            display: inline-block;
-            background: #e67e22;
-            color: white;
-            padding: 12px 18px;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .status {
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-
-<header>
-    <a href="{% url 'home' %}">Majstor.bg</a>
-</header>
-
-<div class="container">
+{% block content %}
 
     <h1>Моите заявки</h1>
 
@@ -141,7 +80,4 @@
 
     {% endfor %}
 
-</div>
-
-</body>
-</html>
+{% endblock %}

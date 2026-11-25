@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Изпращане на оферта | Majstor.bg{% endblock %}
+
+{% block content %}
+
+    <h1>Изпращане на оферта</h1>
+
+    <h3>{{ job.title }}</h3>
+
+    <p>{{ job.description }}</p>
+    <p>Град: {{ job.city }}</p>
+
+    <hr>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary">
+            Изпрати офертата
+        </button>
+    </form>
+
+    <a href="{% url 'request_detail' job.pk %}" class="btn btn-outline-secondary mt-3">
+        Назад към заявката
+    </a>
+
+{% endblock %}

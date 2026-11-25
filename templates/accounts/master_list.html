@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="bg">
-<head>
-    <meta charset="UTF-8">
-    <title>Каталог на майстори | Majstor.bg</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
 
     <h1>Намери майстор</h1>
 
@@ -169,5 +165,4 @@
         <p>Няма намерени майстори, отговарящи на зададените критерии.</p>
     {% endfor %}
 
-</body>
-</html>
+{% endblock %}

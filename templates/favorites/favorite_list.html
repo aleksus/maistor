@@ -1,79 +1,6 @@
-<!DOCTYPE html>
-<html lang="bg">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моите любими майстори | Majstor.bg</title>
+{% extends "base.html" %}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f6f8;
-            color: #333;
-        }
-
-        header {
-            background: #263746;
-            padding: 20px 8%;
-            color: white;
-        }
-
-        header a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 35px auto;
-            padding: 0 20px;
-        }
-
-        .master-card {
-            background: white;
-            padding: 22px;
-            margin-bottom: 18px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .master-card h2 {
-            margin-top: 0;
-            color: #263746;
-        }
-
-        .master-card a {
-            color: #263746;
-        }
-
-        button {
-            background: #c0392b;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .empty {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-        }
-    </style>
-</head>
-
-<body>
-
-<header>
-    <a href="{% url 'home' %}">Majstor.bg</a>
-    <a href="{% url 'master_list' %}">Всички майстори</a>
-</header>
-
-<div class="container">
+{% block content %}
 
     <h1>Моите любими майстори</h1>
 
@@ -148,7 +75,4 @@
         </div>
     {% endfor %}
 
-</div>
-
-</body>
-</html>
+{% endblock %}

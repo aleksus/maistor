@@ -1,29 +1,33 @@
-<h1>Категории услуги</h1>
+{% extends "base.html" %}
 
-<div>
-    {% for category in categories %}
+{% block content %}
+    <h1>Категории услуги</h1>
 
-        <div>
-            {% if category.image %}
-                <img
-                        src="{{ category.image.url }}"
-                        width="150"
-                        alt="{{ category.name }}"
-                >
-            {% endif %}
+    <div>
+        {% for category in categories %}
 
-            <h3>{{ category.name }}</h3>
+            <div>
+                {% if category.image %}
+                    <img
+                            src="{{ category.image.url }}"
+                            width="150"
+                            alt="{{ category.name }}"
+                    >
+                {% endif %}
 
-            <p>{{ category.description }}</p>
+                <h3>{{ category.name }}</h3>
 
-            <a href="{% url 'service_list' category.id %}">
-                Разгледай услугите
-            </a>
-        </div>
+                <p>{{ category.description }}</p>
 
-    {% empty %}
+                <a href="{% url 'service_list' category.id %}">
+                    Разгледай услугите
+                </a>
+            </div>
 
-        <p>Все още няма добавени категории.</p>
+        {% empty %}
 
-    {% endfor %}
-</div>
+            <p>Все още няма добавени категории.</p>
+
+        {% endfor %}
+    </div>
+{% endblock %}

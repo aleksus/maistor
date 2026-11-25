@@ -1,11 +1,15 @@
-<h2>Настройване на профил на майстор</h2>
+{% extends "base.html" %}
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+{% block content %}
+    <h2>Настройване на профил на майстор</h2>
 
-    {{ form.as_p }}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <button type="submit">
-        Запази профила
-    </button>
-</form>
+        {{ form.as_p }}
+
+        <button type="submit">
+            Запази профила
+        </button>
+    </form>
+{% endblock %}

@@ -1,16 +1,21 @@
-<h2>Вход в Majstor.bg</h2>
+{% extends "base.html" %}
 
-<form method="POST">
-    {% csrf_token %}
+{% block content %}
 
-    {{ form.as_p }}
+    <h2>Вход в Majstor.bg</h2>
 
-    <button type="submit">
-        Вход
-    </button>
-</form>
+    <form method="POST">
+        {% csrf_token %}
 
-<p>
-    Нямаш профил?
-    <a href="{% url 'register' %}">Регистрация</a>
-</p>
+        {{ form.as_p }}
+
+        <button type="submit">
+            Вход
+        </button>
+    </form>
+
+    <p>
+        Нямаш профил?
+        <a href="{% url 'register' %}">Регистрация</a>
+    </p>
+{% endblock %}
