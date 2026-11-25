@@ -138,11 +138,11 @@
                 <strong>Бюджет:</strong>
 
                 {% if job.budget_min %}
-                    От {{ job.budget_min }} лв.
+                    От {{ job.budget_min }} €
                 {% endif %}
 
                 {% if job.budget_max %}
-                    до {{ job.budget_max }} лв.
+                    до {{ job.budget_max }} €
                 {% endif %}
 
                 {% if not job.budget_min and not job.budget_max %}
