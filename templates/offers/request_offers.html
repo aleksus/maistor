@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Оферти по заявка | Majstor.bg{% endblock %}
+
+{% block content %}
+
+    <h1 class="mb-3">Получени оферти</h1>
+
+    <div class="card p-4 mb-4">
+        <h4>{{ job.title }}</h4>
+        <p class="text-muted mb-1">{{ job.city }}</p>
+        <p>{{ job.description }}</p>
+
+        <p class="mb-0">
+            <strong>Статус:</strong> {{ job.get_status_display }}
+        </p>
+    </div>
+
+    {% if offers %}
+        <div class="row g-4">
+
+            {% for offer in offers %}
+                <div class="col-md-6">
+                    <div class="card h-100 p-4">
+
+                        <h5>
+                            {{ offer.master.user.username }}
+                        </h5>
+
+                        {% if offer.master.user.profile_picture %}
+                            <img
+                                    src="{{ offer.master.user.profile_picture.url }}"
+                                    alt="Профилна снимка"
+                                    class="rounded-circle mb-3"
+                                    width="80"
+                                    height="80"
+                                    style="object-fit: cover;"
+                            >
+                        {% endif %}
+
+                        <p class="mb-2">
+                            <strong>Цена:</strong>
+                            {{ offer.price }} €
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Очакван срок:</strong>
+                            {{ offer.estimated_days }} дни
+                        </p>
+
+                        <p>
+                            <strong>Съобщение:</strong><br>
+                            {{ offer.message }}
+                        </p>
+
+                        <p class="text-muted small">
+                            Изпратена на:
+                            {{ offer.created_at|date:"d.m.Y H:i" }}
+                        </p>
+
+                        <p class="mb-0">
+                            <strong>Статус:</strong>
+                            {{ offer.get_status_display }}
+                        </p>
+
+                        {% if job.status == "open" and offer.status == "pending" %}
+
+                            <form method="POST"
+                                  action="{% url 'accept_offer' offer.pk %}"
+                                  onsubmit="return confirm('Сигурни ли сте, че искате да приемете тази оферта?');">
+
+                                {% csrf_token %}
+
+                                <button type="submit" class="btn btn-success mt-3">
+                                    Приеми офертата
+                                </button>
+
+                            </form>
+
+                        {% elif offer.status == "accepted" %}
+
+                            <div class="alert alert-success mt-3">
+                                Тази оферта е приета.
+                            </div>
+
+                        {% elif offer.status == "rejected" %}
+
+                            <div class="alert alert-secondary mt-3">
+                                Тази оферта е отхвърлена.
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Все още няма получени оферти по тази заявка.
+        </div>
+    {% endif %}
+
+    <a href="{% url 'my_jobs' %}" class="btn btn-outline-secondary mt-4">
+        Назад към моите заявки
+    </a>
+
+{% endblock %}

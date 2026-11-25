@@ -69,6 +69,10 @@
                 {{ job.images.count }}
             </p>
 
+            <a href="{% url 'request_offers' job.pk %}" class="btn btn-primary btn-sm">
+                Виж получените оферти
+            </a>
+
         </div>
 
     {% empty %}

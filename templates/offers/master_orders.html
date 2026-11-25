@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Моите поръчки | Majstor.bg{% endblock %}
+
+{% block content %}
+
+    <h1 class="mb-4">Моите поръчки</h1>
+
+    {% if offers %}
+        <div class="row g-4">
+            {% for offer in offers %}
+                <div class="col-md-6">
+                    <div class="card h-100 p-4">
+
+                        <h4>{{ offer.job_request.title }}</h4>
+
+                        <p>
+                            <strong>Клиент:</strong>
+                            {{ offer.job_request.client.username }}
+                        </p>
+
+                        <p>
+                            <strong>Град:</strong>
+                            {{ offer.job_request.city }}
+                        </p>
+
+                        <p>
+                            <strong>Предложена цена:</strong>
+                            {{ offer.price }} лв.
+                        </p>
+
+                        <p>
+                            <strong>Очакван срок:</strong>
+                            {{ offer.estimated_days }} дни
+                        </p>
+
+                        <p>
+                            <strong>Статус на заявката:</strong>
+                            {{ offer.job_request.get_status_display }}
+                        </p>
+
+                        {% if offer.job_request.status == "in_progress" %}
+                            <form method="POST"
+                                  action="{% url 'complete_order' offer.job_request.pk %}">
+                                {% csrf_token %}
+
+                                <button type="submit" class="btn btn-success">
+                                    Маркирай като завършена
+                                </button>
+                            </form>
+
+                        {% elif offer.job_request.status == "completed" %}
+                            <div class="alert alert-success mb-0">
+                                Поръчката е завършена.
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Все още нямаш приети оферти.
+        </div>
+    {% endif %}
+
+{% endblock %}
