@@ -63,6 +63,21 @@
                             {{ offer.get_status_display }}
                         </p>
 
+                        {% if job.status == "completed" and offer.status == "accepted" %}
+
+                            {% if offer.review %}
+                                <div class="alert alert-success mt-3">
+                                    Вече си оставил отзив за този майстор.
+                                </div>
+                            {% else %}
+                                <a href="{% url 'create_review' offer.pk %}"
+                                   class="btn btn-primary mt-3">
+                                    Оцени майстора
+                                </a>
+                            {% endif %}
+
+                        {% endif %}
+
                         {% if job.status == "open" and offer.status == "pending" %}
 
                             <form method="POST"

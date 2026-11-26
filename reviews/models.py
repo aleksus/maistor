@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Review(models.Model):
-
     offer = models.OneToOneField(
         "offers.Offer",
         on_delete=models.CASCADE,
@@ -22,4 +21,4 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Оценка: {self.rating}/5"
+        return f"{self.offer.master.user.username} - {self.rating}/5"

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Остави отзив | Majstor.bg{% endblock %}
+
+{% block content %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="card p-4">
+                <h2 class="mb-3">Оцени майстора</h2>
+
+                <p>
+                    <strong>Майстор:</strong>
+                    {{ offer.master.user.username }}
+                </p>
+
+                <p>
+                    <strong>Заявка:</strong>
+                    {{ offer.job_request.title }}
+                </p>
+
+                <hr>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            {{ form.rating.label }}
+                        </label>
+                        {{ form.rating }}
+
+                        {% for error in form.rating.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            {{ form.comment.label }}
+                        </label>
+                        {{ form.comment }}
+
+                        {% for error in form.comment.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Изпрати отзива
+                    </button>
+
+                    <a href="{% url 'my_jobs' %}"
+                       class="btn btn-outline-secondary">
+                        Отказ
+                    </a>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
