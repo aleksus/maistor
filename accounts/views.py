@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
-
+from django.contrib.auth.models import Group
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
 from .forms import (
@@ -22,6 +22,18 @@ def register(request):
         if form.is_valid():
             with transaction.atomic():
                 user = form.save()
+
+                group_name = (
+                    "Майстори"
+                    if user.role == "master"
+                    else "Клиенти"
+                )
+
+                group, created = Group.objects.get_or_create(
+                    name=group_name
+                )
+
+                user.groups.add(group)
 
                 if user.role == "master":
                     MasterProfile.objects.create(
