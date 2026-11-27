@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
@@ -41,8 +42,13 @@ def register(request):
                         description="",
                         city=""
                     )
+                    group_name = "Майстори"
                 else:
                     ClientProfile.objects.create(user=user)
+                    group_name = "Клиенти"
+
+                group = Group.objects.get(name=group_name)
+                user.groups.add(group)
 
             login(request, user)
 
