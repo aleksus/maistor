@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 
+from services.models import Service
 from .forms import JobRequestForm
 from .models import JobRequest, RequestImage
 
@@ -57,7 +58,6 @@ class CreateJobView(
         return super().form_valid(form)
 
 
-
 class MyJobsView(
     LoginRequiredMixin,
     UserPassesTestMixin,
@@ -89,60 +89,70 @@ class MyJobsView(
         ).order_by("-created_at")
 
 
-@login_required
-def available_requests(request):
-    if request.user.role != "master":
-        messages.error(
-            request,
-            "Само майстори могат да разглеждат свободните заявки."
-        )
-        return redirect("home")
+class AvailableRequestsView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    ListView
+):
+    model = JobRequest
+    template_name = "requests/available_requests.html"
+    context_object_name = "requests"
 
-    requests_list = JobRequest.objects.filter(
-        status=JobRequest.Status.OPEN
-    ).select_related(
-        "client"
-    ).prefetch_related(
-        "services",
-        "images"
-    ).order_by("-created_at")
+    def test_func(self):
+        return self.request.user.role == "master"
 
-    city = request.GET.get("city", "").strip()
-    search = request.GET.get("search", "").strip()
-    service_id = request.GET.get("service", "").strip()
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(
+                self.request,
+                "Само майстори могат да разглеждат свободните заявки."
+            )
+            return redirect("home")
 
-    if city:
-        requests_list = requests_list.filter(
-            city__icontains=city
-        )
+        return super().handle_no_permission()
 
-    if search:
-        requests_list = requests_list.filter(
-            title__icontains=search
-        )
+    def get_queryset(self):
+        requests_list = JobRequest.objects.filter(
+            status=JobRequest.Status.OPEN
+        ).select_related(
+            "client"
+        ).prefetch_related(
+            "services",
+            "images"
+        ).order_by("-created_at")
 
-    if service_id.isdigit():
-        requests_list = requests_list.filter(
-            services__id=int(service_id)
-        )
+        city = self.request.GET.get("city", "").strip()
+        search = self.request.GET.get("search", "").strip()
+        service_id = self.request.GET.get("service", "").strip()
 
-    requests_list = requests_list.distinct()
+        if city:
+            requests_list = requests_list.filter(
+                city__icontains=city
+            )
 
-    from services.models import Service
+        if search:
+            requests_list = requests_list.filter(
+                title__icontains=search
+            )
 
-    context = {
-        "requests": requests_list,
-        "services": Service.objects.all(),
-        "selected_city": city,
-        "selected_search": search,
-        "selected_service": service_id,
-    }
+        if service_id.isdigit():
+            requests_list = requests_list.filter(
+                services__id=int(service_id)
+            )
 
-    return render(
-        request,
-        "requests/available_requests.html",
-        context
-    )
+        return requests_list.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "services": Service.objects.all(),
+            "selected_city": self.request.GET.get("city", "").strip(),
+            "selected_search": self.request.GET.get("search", "").strip(),
+            "selected_service": self.request.GET.get("service", "").strip(),
+        })
+
+        return context
 
 
 @login_required

@@ -13,7 +13,7 @@ urlpatterns = [
 
     path(
         "available/",
-        views.available_requests,
+        views.AvailableRequestsView.as_view(),
         name="available_requests"
     ),
 
