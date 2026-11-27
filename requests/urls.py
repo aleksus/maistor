@@ -7,7 +7,9 @@ urlpatterns = [
          views.CreateJobView.as_view(),
          name="create_job"),
 
-    path("my-jobs/", views.my_jobs, name="my_jobs"),
+    path("my-jobs/",
+         views.MyJobsView.as_view(),
+         name="my_jobs"),
 
     path(
         "available/",

@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.views.generic import CreateView, ListView
 
 from .forms import JobRequestForm
 from .models import JobRequest, RequestImage
@@ -57,27 +57,36 @@ class CreateJobView(
         return super().form_valid(form)
 
 
-@login_required
-def my_jobs(request):
-    if request.user.role != "client":
-        messages.error(
-            request,
-            "Тази страница е достъпна само за клиенти."
-        )
-        return redirect("home")
 
-    jobs = JobRequest.objects.filter(
-        client=request.user
-    ).prefetch_related(
-        "services",
-        "images"
-    ).order_by("-created_at")
+class MyJobsView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    ListView
+):
+    model = JobRequest
+    template_name = "requests/my_jobs.html"
+    context_object_name = "jobs"
 
-    return render(
-        request,
-        "requests/my_jobs.html",
-        {"jobs": jobs}
-    )
+    def test_func(self):
+        return self.request.user.role == "client"
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(
+                self.request,
+                "Тази страница е достъпна само за клиенти."
+            )
+            return redirect("home")
+
+        return super().handle_no_permission()
+
+    def get_queryset(self):
+        return JobRequest.objects.filter(
+            client=self.request.user
+        ).prefetch_related(
+            "services",
+            "images"
+        ).order_by("-created_at")
 
 
 @login_required
