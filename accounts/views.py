@@ -4,9 +4,13 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
-from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, UpdateView
+from django.views.generic import (
+    ListView,
+    DetailView,
+    UpdateView,
+    CreateView,
+)
 
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
@@ -17,55 +21,41 @@ from .forms import (
 from .models import MasterProfile, ClientProfile
 
 
-def register(request):
-    if request.method == "POST":
-        form = UserRegisterForm(request.POST)
+class RegisterView(CreateView):
+    form_class = UserRegisterForm
+    template_name = "accounts/register.html"
 
-        if form.is_valid():
-            with transaction.atomic():
-                user = form.save()
+    def form_valid(self, form):
+        with transaction.atomic():
+            user = form.save()
 
-                group_name = (
-                    "Майстори"
-                    if user.role == "master"
-                    else "Клиенти"
-                )
+            group_name = (
+                "Майстори"
+                if user.role == "master"
+                else "Клиенти"
+            )
 
-                group, created = Group.objects.get_or_create(
-                    name=group_name
-                )
+            group, created = Group.objects.get_or_create(
+                name=group_name
+            )
 
-                user.groups.add(group)
-
-                if user.role == "master":
-                    MasterProfile.objects.create(
-                        user=user,
-                        description="",
-                        city=""
-                    )
-                    group_name = "Майстори"
-                else:
-                    ClientProfile.objects.create(user=user)
-                    group_name = "Клиенти"
-
-                group = Group.objects.get(name=group_name)
-                user.groups.add(group)
-
-            login(request, user)
+            user.groups.add(group)
 
             if user.role == "master":
-                return redirect("master_profile_setup")
+                MasterProfile.objects.create(
+                    user=user,
+                    description="",
+                    city=""
+                )
+            else:
+                ClientProfile.objects.create(user=user)
 
-            return redirect("home")
+        login(self.request, user)
 
-    else:
-        form = UserRegisterForm()
+        if user.role == "master":
+            return redirect("master_profile_setup")
 
-    return render(
-        request,
-        "accounts/register.html",
-        {"form": form}
-    )
+        return redirect("home")
 
 
 class MasterProfileSetupView(
