@@ -26,7 +26,11 @@ urlpatterns = [
         name="master_profile_setup"
     ),
 
-    path("masters/", views.master_list, name="master_list"),
+    path(
+        "masters/",
+        views.MasterListView.as_view(),
+        name="master_list"
+    ),
 
     path(
         "masters/<int:pk>/",

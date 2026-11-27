@@ -4,7 +4,7 @@ from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
-
+from django.views.generic import ListView
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
 from .forms import (
@@ -95,86 +95,107 @@ def master_profile_setup(request):
     )
 
 
-def master_list(request):
-    masters = MasterProfile.objects.filter(
-        user__is_active=True
-    ).select_related(
-        "user"
-    ).prefetch_related(
-        "services",
-        "services__category"
-    ).annotate(
-        avg_rating=Avg("offers__review__rating"),
-        review_count=Count("offers__review", distinct=True)
-    )
 
-    # Филтри от GET параметрите
-    city = request.GET.get("city", "").strip()
-    category_id = request.GET.get("category", "").strip()
-    service_id = request.GET.get("service", "").strip()
-    min_experience = request.GET.get("min_experience", "").strip()
-    max_price = request.GET.get("max_price", "").strip()
-    search = request.GET.get("search", "").strip()
+class MasterListView(ListView):
+    model = MasterProfile
+    template_name = "accounts/master_list.html"
+    context_object_name = "masters"
 
-    if city:
-        masters = masters.filter(city__icontains=city)
-
-    if category_id.isdigit():
-        masters = masters.filter(
-            services__category_id=int(category_id)
+    def get_queryset(self):
+        masters = MasterProfile.objects.filter(
+            user__is_active=True
+        ).select_related(
+            "user"
+        ).prefetch_related(
+            "services",
+            "services__category"
+        ).annotate(
+            avg_rating=Avg("offers__review__rating"),
+            review_count=Count("offers__review", distinct=True)
         )
 
-    if service_id.isdigit():
-        masters = masters.filter(
-            services__id=int(service_id)
-        )
+        params = self.request.GET
 
-    if min_experience.isdigit():
-        masters = masters.filter(
-            experience_years__gte=int(min_experience)
-        )
+        city = params.get("city", "").strip()
+        category_id = params.get("category", "").strip()
+        service_id = params.get("service", "").strip()
+        min_experience = params.get("min_experience", "").strip()
+        max_price = params.get("max_price", "").strip()
+        search = params.get("search", "").strip()
 
-    if max_price:
-        try:
+        if city:
+            masters = masters.filter(city__icontains=city)
+
+        if category_id.isdigit():
             masters = masters.filter(
-                price_from__lte=float(max_price)
+                services__category_id=int(category_id)
             )
-        except ValueError:
-            pass
 
-    if search:
-        masters = masters.filter(
-            user__username__icontains=search
-        )
+        if service_id.isdigit():
+            masters = masters.filter(
+                services__id=int(service_id)
+            )
 
-    masters = masters.distinct()
+        if min_experience.isdigit():
+            masters = masters.filter(
+                experience_years__gte=int(min_experience)
+            )
 
-    # Сортиране
-    sort = request.GET.get("sort", "rating")
+        if max_price:
+            try:
+                masters = masters.filter(
+                    price_from__lte=float(max_price)
+                )
+            except ValueError:
+                pass
 
-    if sort == "experience":
-        masters = masters.order_by("-experience_years")
-    elif sort == "price":
-        masters = masters.order_by("price_from")
-    elif sort == "rating":
-        masters = masters.order_by("-avg_rating", "-review_count")
-    else:
-        masters = masters.order_by("-id")
+        if search:
+            masters = masters.filter(
+                user__username__icontains=search
+            )
 
-    context = {
-        "masters": masters,
-        "categories": ServiceCategory.objects.all(),
-        "services": Service.objects.select_related("category").all(),
-        "selected_city": city,
-        "selected_category": category_id,
-        "selected_service": service_id,
-        "selected_min_experience": min_experience,
-        "selected_max_price": max_price,
-        "selected_search": search,
-        "selected_sort": sort,
-    }
+        masters = masters.distinct()
 
-    return render(request, "accounts/master_list.html", context)
+        sort = params.get("sort", "rating")
+
+        if sort == "experience":
+            masters = masters.order_by("-experience_years")
+        elif sort == "price":
+            masters = masters.order_by("price_from")
+        elif sort == "rating":
+            masters = masters.order_by(
+                "-avg_rating",
+                "-review_count"
+            )
+        else:
+            masters = masters.order_by("-id")
+
+        return masters
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        params = self.request.GET
+
+        context.update({
+            "categories": ServiceCategory.objects.all(),
+            "services": Service.objects.select_related(
+                "category"
+            ).all(),
+            "selected_city": params.get("city", "").strip(),
+            "selected_category": params.get("category", "").strip(),
+            "selected_service": params.get("service", "").strip(),
+            "selected_min_experience": params.get(
+                "min_experience", ""
+            ).strip(),
+            "selected_max_price": params.get(
+                "max_price", ""
+            ).strip(),
+            "selected_search": params.get("search", "").strip(),
+            "selected_sort": params.get("sort", "rating"),
+        })
+
+        return context
 
 
 def master_detail(request, pk):
