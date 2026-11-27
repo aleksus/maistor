@@ -34,7 +34,7 @@ urlpatterns = [
 
     path(
         "masters/<int:pk>/",
-        views.master_detail,
+        views.MasterDetailView.as_view(),
         name="master_detail"
     ),
 ]

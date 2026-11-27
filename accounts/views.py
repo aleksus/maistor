@@ -3,8 +3,9 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
-from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView
+from django.shortcuts import render
+from django.views.generic import ListView, DetailView
+
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
 from .forms import (
@@ -93,7 +94,6 @@ def master_profile_setup(request):
         "accounts/master_profile_setup.html",
         {"form": form}
     )
-
 
 
 class MasterListView(ListView):
@@ -198,41 +198,52 @@ class MasterListView(ListView):
         return context
 
 
-def master_detail(request, pk):
-    master = get_object_or_404(
-        MasterProfile.objects.select_related("user").prefetch_related(
+class MasterDetailView(DetailView):
+    model = MasterProfile
+    template_name = "accounts/master_detail.html"
+    context_object_name = "master"
+
+    def get_queryset(self):
+        return MasterProfile.objects.select_related(
+            "user"
+        ).prefetch_related(
             "services",
             "services__category",
             "offers__review"
         ).annotate(
             avg_rating=Avg("offers__review__rating"),
             review_count=Count("offers__review", distinct=True)
-        ),
-        pk=pk,
-        user__is_active=True
-    )
+        ).filter(
+            user__is_active=True
+        )
 
-    is_favorite = False
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    if request.user.is_authenticated and request.user.role == "client":
-        is_favorite = Favorite.objects.filter(
-            client=request.user,
-            master=master
-        ).exists()
+        master = self.object
+        user = self.request.user
 
-    reviews = master.offers.filter(
-        status="accepted",
-        review__isnull=False
-    ).select_related(
-        "review",
-        "job_request",
-        "job_request__client"
-    ).order_by("-review__created_at")
+        is_favorite = False
 
-    context = {
-        "master": master,
-        "reviews": reviews,
-        "is_favorite": is_favorite,
-    }
+        if user.is_authenticated and user.role == "client":
+            is_favorite = Favorite.objects.filter(
+                client=user,
+                master=master
+            ).exists()
 
-    return render(request, "accounts/master_detail.html", context)
+        reviews = master.offers.filter(
+            status="accepted",
+            review__isnull=False
+        ).select_related(
+            "review",
+            "job_request",
+            "job_request__client"
+        ).order_by("-review__created_at")
+
+        context.update({
+            "master": master,
+            "reviews": reviews,
+            "is_favorite": is_favorite,
+        })
+
+        return context
