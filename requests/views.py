@@ -1,55 +1,60 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 
 from .forms import JobRequestForm
 from .models import JobRequest, RequestImage
 
 
-@login_required
-def create_job(request):
-    if request.user.role != "client":
-        messages.error(
-            request,
-            "Само клиенти могат да публикуват заявки."
-        )
-        return redirect("home")
+class CreateJobView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    CreateView
+):
+    model = JobRequest
+    form_class = JobRequestForm
+    template_name = "requests/create_job.html"
+    success_url = reverse_lazy("my_jobs")
 
-    if request.method == "POST":
-        form = JobRequestForm(request.POST)
+    def test_func(self):
+        return self.request.user.role == "client"
 
-        if form.is_valid():
-            with transaction.atomic():
-                job = form.save(commit=False)
-                job.client = request.user
-                job.save()
-
-                form.save_m2m()
-
-                images = request.FILES.getlist("images")
-
-                for image in images:
-                    RequestImage.objects.create(
-                        job_request=job,
-                        image=image
-                    )
-
-            messages.success(
-                request,
-                "Заявката беше публикувана успешно!"
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(
+                self.request,
+                "Само клиенти могат да публикуват заявки."
             )
+            return redirect("home")
 
-            return redirect("my_jobs")
+        return super().handle_no_permission()
 
-    else:
-        form = JobRequestForm()
+    def form_valid(self, form):
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            self.object.client = self.request.user
+            self.object.save()
 
-    return render(
-        request,
-        "requests/create_job.html",
-        {"form": form}
-    )
+            form.save_m2m()
+
+            images = self.request.FILES.getlist("images")
+
+            for image in images:
+                RequestImage.objects.create(
+                    job_request=self.object,
+                    image=image
+                )
+
+        messages.success(
+            self.request,
+            "Заявката беше публикувана успешно!"
+        )
+
+        return super().form_valid(form)
 
 
 @login_required
