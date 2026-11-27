@@ -1,12 +1,10 @@
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.models import Group
+
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
 from .forms import (
@@ -95,38 +93,6 @@ def master_profile_setup(request):
         "accounts/master_profile_setup.html",
         {"form": form}
     )
-
-
-def user_login(request):
-    if request.method == "POST":
-        form = AuthenticationForm(
-            request,
-            data=request.POST
-        )
-
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect("home")
-
-    else:
-        form = AuthenticationForm()
-
-    return render(
-        request,
-        "accounts/login.html",
-        {"form": form}
-    )
-
-
-@login_required
-def user_logout(request):
-    if request.method == "POST":
-        from django.contrib.auth import logout
-        logout(request)
-        return redirect("login")
-
-    return redirect("home")
 
 
 def master_list(request):
