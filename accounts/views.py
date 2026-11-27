@@ -1,10 +1,12 @@
 from django.contrib.auth import login
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, UpdateView
 
 from favorites.models import Favorite
 from services.models import ServiceCategory, Service
@@ -66,34 +68,27 @@ def register(request):
     )
 
 
-def master_profile_setup(request):
-    if not request.user.is_authenticated:
-        return redirect("login")
+class MasterProfileSetupView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    UpdateView
+):
+    model = MasterProfile
+    form_class = MasterProfileForm
+    template_name = "accounts/master_profile_setup.html"
+    success_url = reverse_lazy("home")
 
-    if request.user.role != "master":
-        return redirect("home")
+    def test_func(self):
+        return self.request.user.role == "master"
 
-    profile = request.user.master_profile
+    def get_object(self, queryset=None):
+        return self.request.user.master_profile
 
-    if request.method == "POST":
-        form = MasterProfileForm(
-            request.POST,
-            request.FILES,
-            instance=profile
-        )
-
-        if form.is_valid():
-            form.save()
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
             return redirect("home")
 
-    else:
-        form = MasterProfileForm(instance=profile)
-
-    return render(
-        request,
-        "accounts/master_profile_setup.html",
-        {"form": form}
-    )
+        return super().handle_no_permission()
 
 
 class MasterListView(ListView):

@@ -22,7 +22,7 @@ urlpatterns = [
 
     path(
         "master-profile/setup/",
-        views.master_profile_setup,
+        views.MasterProfileSetupView.as_view(),
         name="master_profile_setup"
     ),
 
