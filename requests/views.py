@@ -1,10 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, DetailView
 
 from services.models import Service
 from .forms import JobRequestForm
@@ -155,28 +154,34 @@ class AvailableRequestsView(
         return context
 
 
-@login_required
-def request_detail(request, pk):
-    if request.user.role != "master":
-        messages.error(
-            request,
-            "Само майстори могат да разглеждат подробностите на заявките."
-        )
-        return redirect("home")
+class RequestDetailView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    DetailView
+):
+    model = JobRequest
+    template_name = "requests/request_detail.html"
+    context_object_name = "job"
 
-    job = get_object_or_404(
-        JobRequest.objects.select_related(
+    def test_func(self):
+        return self.request.user.role == "master"
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(
+                self.request,
+                "Само майстори могат да разглеждат подробностите на заявките."
+            )
+            return redirect("home")
+
+        return super().handle_no_permission()
+
+    def get_queryset(self):
+        return JobRequest.objects.filter(
+            status=JobRequest.Status.OPEN
+        ).select_related(
             "client"
         ).prefetch_related(
             "services",
             "images"
-        ),
-        pk=pk,
-        status=JobRequest.Status.OPEN
-    )
-
-    return render(
-        request,
-        "requests/request_detail.html",
-        {"job": job}
-    )
+        )

@@ -19,7 +19,7 @@ urlpatterns = [
 
     path(
         "available/<int:pk>/",
-        views.request_detail,
+        views.RequestDetailView.as_view(),
         name="request_detail"
     ),
 ]
