@@ -6,7 +6,9 @@ from rest_framework.test import APITestCase
 
 from job_requests.models import JobRequest
 from services.models import Service, ServiceCategory
-
+from accounts.models import MasterProfile
+from offers.models import Offer
+from api.serializers import OfferSerializer
 
 User = get_user_model()
 
@@ -154,3 +156,115 @@ class JobRequestAPITests(APITestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
+
+
+class OfferSerializerTests(APITestCase):
+
+    def setUp(self):
+        self.category = ServiceCategory.objects.create(
+            name="Ремонт"
+        )
+
+        self.service = Service.objects.create(
+            category=self.category,
+            name="ВиК услуги"
+        )
+
+        self.client_user = User.objects.create_user(
+            username="offer_client",
+            email="offer_client@example.com",
+            password="TestPassword123!",
+            role="client",
+        )
+
+        self.master = User.objects.create_user(
+            username="offer_master",
+            email="offer_master@example.com",
+            password="TestPassword123!",
+            role="master",
+        )
+
+        self.master_profile = MasterProfile.objects.create(
+            user=self.master,
+            description="Опитен майстор",
+            city="София",
+        )
+
+        self.job_request = JobRequest.objects.create(
+            client=self.client_user,
+            title="Ремонт на баня",
+            description="Описание",
+            city="София",
+        )
+        self.job_request.services.add(self.service)
+
+    def test_offer_uses_current_master_profile(self):
+        serializer = OfferSerializer(
+            data={
+                "job_request": self.job_request.id,
+                "price": "850.00",
+                "message": "Мога да извърша ремонта.",
+                "estimated_days": 5,
+            },
+            context={
+                "request": type(
+                    "Request",
+                    (),
+                    {"user": self.master}
+                )()
+            },
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        offer = serializer.save()
+
+        self.assertEqual(offer.master, self.master_profile)
+        self.assertEqual(offer.status, Offer.Status.PENDING)
+
+    def test_offer_for_closed_request_is_rejected(self):
+        self.job_request.status = JobRequest.Status.COMPLETED
+        self.job_request.save()
+
+        serializer = OfferSerializer(
+            data={
+                "job_request": self.job_request.id,
+                "price": "850.00",
+                "message": "Оферта",
+                "estimated_days": 5,
+            },
+            context={
+                "request": type(
+                    "Request",
+                    (),
+                    {"user": self.master}
+                )()
+            },
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("job_request", serializer.errors)
+
+    def test_offer_status_is_read_only(self):
+        serializer = OfferSerializer(
+            data={
+                "job_request": self.job_request.id,
+                "price": "850.00",
+                "message": "Оферта",
+                "estimated_days": 5,
+                "status": Offer.Status.ACCEPTED,
+            },
+            context={
+                "request": type(
+                    "Request",
+                    (),
+                    {"user": self.master}
+                )()
+            },
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        offer = serializer.save()
+
+        self.assertEqual(offer.status, Offer.Status.PENDING)
