@@ -1,15 +1,16 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
     path(
         "toggle/<int:master_id>/",
-        views.toggle_favorite,
+        views.ToggleFavoriteView.as_view(),
         name="toggle_favorite"
     ),
     path(
         "",
-        views.favorite_list,
+        views.FavoriteListView.as_view(),
         name="favorite_list"
     ),
 ]

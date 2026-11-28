@@ -1,65 +1,75 @@
+
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from django.views.generic import ListView
 
 from accounts.models import MasterProfile
+
 from .models import Favorite
 
 
-@login_required
-@require_POST
-def toggle_favorite(request, master_id):
-    # Само клиенти могат да добавят майстори в любими.
-    if request.user.role != "client":
-        messages.error(
-            request,
-            "Само клиентите могат да добавят майстори в любими."
+class FavoriteRoleMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == "client"
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(
+                self.request,
+                "Тази функционалност е достъпна само за клиенти."
+            )
+            return redirect("home")
+
+        return super().handle_no_permission()
+
+
+class ToggleFavoriteView(FavoriteRoleMixin, View):
+    http_method_names = ["post"]
+
+    def post(self, request, master_id):
+        master = get_object_or_404(
+            MasterProfile,
+            pk=master_id,
+            user__is_active=True
         )
-        return redirect("master_detail", pk=master_id)
 
-    master = get_object_or_404(
-        MasterProfile,
-        pk=master_id,
-        user__is_active=True
-    )
-
-    favorite = Favorite.objects.filter(
-        client=request.user,
-        master=master
-    )
-
-    if favorite.exists():
-        favorite.delete()
-        messages.success(request, "Майсторът беше премахнат от любими.")
-    else:
-        Favorite.objects.create(
+        favorite = Favorite.objects.filter(
             client=request.user,
             master=master
         )
-        messages.success(request, "Майсторът беше добавен в любими.")
 
-    return redirect("master_detail", pk=master_id)
+        if favorite.exists():
+            favorite.delete()
+            messages.success(
+                request,
+                "Майсторът беше премахнат от любими."
+            )
+        else:
+            Favorite.objects.get_or_create(
+                client=request.user,
+                master=master
+            )
+            messages.success(
+                request,
+                "Майсторът беше добавен в любими."
+            )
+
+        return redirect("master_detail", pk=master_id)
 
 
-@login_required
-def favorite_list(request):
-    if request.user.role != "client":
-        messages.error(
-            request,
-            "Тази страница е достъпна само за клиенти."
-        )
-        return redirect("home")
+class FavoriteListView(FavoriteRoleMixin, ListView):
+    model = Favorite
+    template_name = "favorites/favorite_list.html"
+    context_object_name = "favorites"
 
-    favorites = Favorite.objects.filter(
-        client=request.user
-    ).select_related(
-        "master",
-        "master__user"
-    ).prefetch_related(
-        "master__services"
-    ).order_by("-created_at")
-
-    return render(request, "favorites/favorite_list.html", {
-        "favorites": favorites
-    })
+    def get_queryset(self):
+        return Favorite.objects.filter(
+            client=self.request.user
+        ).select_related(
+            "master",
+            "master__user"
+        ).prefetch_related(
+            "master__services"
+        ).order_by("-created_at")
