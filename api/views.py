@@ -2,9 +2,12 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from job_requests.models import JobRequest
+from offers.models import Offer
 from services.models import Service, ServiceCategory
 from .permissions import IsClient
+from .permissions import IsMaster
 from .serializers import JobRequestSerializer
+from .serializers import OfferSerializer
 from .serializers import (
     ServiceCategorySerializer,
     ServiceSerializer,
@@ -32,3 +35,13 @@ class JobRequestListCreateAPIView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
+
+
+class OfferListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = OfferSerializer
+    permission_classes = [IsAuthenticated, IsMaster]
+
+    def get_queryset(self):
+        return Offer.objects.filter(
+            master__user=self.request.user
+        ).select_related("job_request", "master")

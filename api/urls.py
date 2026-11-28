@@ -4,6 +4,7 @@ from .views import (
     ServiceCategoryListAPIView,
     ServiceListAPIView,
     JobRequestListCreateAPIView,
+    OfferListCreateAPIView,
 )
 
 app_name = "api"
@@ -23,5 +24,10 @@ urlpatterns = [
         "requests/",
         JobRequestListCreateAPIView.as_view(),
         name="request-list-create",
+    ),
+    path(
+        "offers/",
+        OfferListCreateAPIView.as_view(),
+        name="offer-list-create",
     ),
 ]
