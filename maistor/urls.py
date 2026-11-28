@@ -15,23 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.shortcuts import render
 from django.urls import path, include
+from django.views.generic import TemplateView
 
 from services.models import ServiceCategory
 
 
-def home(request):
-    categories = ServiceCategory.objects.all()
+class HomeView(TemplateView):
+    template_name = "home.html"
 
-    return render(request, "home.html", {
-        "categories": categories
-    })
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categories"] = ServiceCategory.objects.all()
+        return context
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'),
+    path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls')),
     path("favorites/", include("favorites.urls")),
     path('offers/', include('offers.urls')),
