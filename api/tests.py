@@ -47,6 +47,38 @@ class JobRequestAPITests(APITestCase):
 
         self.url = reverse("api:request-list-create")
 
+
+    def test_anonymous_user_can_list_categories(self):
+        response = self.client.get(
+            reverse("api:category-list")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data[0]["name"],
+            self.category.name
+        )
+
+    def test_anonymous_user_can_list_services(self):
+        response = self.client.get(
+            reverse("api:service-list")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data[0]["name"],
+            self.service.name
+        )
+
+
     def test_client_can_create_job_request(self):
         self.client.force_authenticate(user=self.client_user)
 
