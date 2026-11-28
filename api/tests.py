@@ -1,14 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from job_requests.models import JobRequest
-from services.models import Service, ServiceCategory
 from accounts.models import MasterProfile
-from offers.models import Offer
 from api.serializers import OfferSerializer
+from job_requests.models import JobRequest
+from offers.models import Offer
+from services.models import Service, ServiceCategory
 
 User = get_user_model()
 
@@ -190,6 +189,8 @@ class OfferSerializerTests(APITestCase):
             city="София",
         )
 
+        self.url = reverse("api:offer-list-create")
+
         self.job_request = JobRequest.objects.create(
             client=self.client_user,
             title="Ремонт на баня",
@@ -268,3 +269,114 @@ class OfferSerializerTests(APITestCase):
         offer = serializer.save()
 
         self.assertEqual(offer.status, Offer.Status.PENDING)
+
+    def test_master_can_create_offer_through_api(self):
+        self.client.force_authenticate(user=self.master)
+
+        response = self.client.post(
+            self.url,
+            {
+                "job_request": self.job_request.id,
+                "price": "850.00",
+                "message": "Мога да извърша ремонта.",
+                "estimated_days": 5,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+        offer = Offer.objects.get(id=response.data["id"])
+        self.assertEqual(offer.master, self.master_profile)
+
+    def test_master_sees_only_own_offers(self):
+        other_master = User.objects.create_user(
+            username="other_master",
+            email="other_master@example.com",
+            password="TestPassword123!",
+            role="master",
+        )
+
+        other_profile = MasterProfile.objects.create(
+            user=other_master,
+            description="Друг майстор",
+            city="Пловдив",
+        )
+
+        own_offer = Offer.objects.create(
+            job_request=self.job_request,
+            master=self.master_profile,
+            price="850.00",
+            message="Моята оферта",
+            estimated_days=5,
+        )
+
+        Offer.objects.create(
+            job_request=self.job_request,
+            master=other_profile,
+            price="900.00",
+            message="Чужда оферта",
+            estimated_days=6,
+        )
+
+        self.client.force_authenticate(user=self.master)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], own_offer.id)
+
+    def test_client_cannot_access_offers_api(self):
+        self.client.force_authenticate(user=self.client_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN
+        )
+
+    def test_master_cannot_submit_duplicate_offer(self):
+        self.client.force_authenticate(user=self.master)
+
+        payload = {
+            "job_request": self.job_request.id,
+            "price": "850.00",
+            "message": "Оферта",
+            "estimated_days": 5,
+        }
+
+        first_response = self.client.post(
+            self.url,
+            payload,
+            format="json",
+        )
+
+        second_response = self.client.post(
+            self.url,
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            status.HTTP_201_CREATED
+        )
+        self.assertEqual(
+            second_response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(
+            Offer.objects.filter(
+                job_request=self.job_request,
+                master=self.master_profile,
+            ).count(),
+            1,
+        )

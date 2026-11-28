@@ -86,11 +86,29 @@ class OfferSerializer(serializers.ModelSerializer):
                 "Можеш да подаваш оферти само за отворени заявки."
             )
 
+        user = self.context["request"].user
+        master_profile = MasterProfile.objects.filter(
+            user=user
+        ).first()
+
+        if master_profile and Offer.objects.filter(
+                job_request=value,
+                master=master_profile,
+        ).exists():
+            raise serializers.ValidationError(
+                "Вече си подал оферта за тази заявка."
+            )
+
         return value
 
     def create(self, validated_data):
         user = self.context["request"].user
-        master_profile = MasterProfile.objects.get(user=user)
+        master_profile = MasterProfile.objects.filter(user=user).first()
+
+        if master_profile is None:
+            raise serializers.ValidationError(
+                "Нямаш създаден профил на майстор."
+            )
 
         validated_data["master"] = master_profile
 
