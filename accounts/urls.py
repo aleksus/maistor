@@ -39,4 +39,10 @@ urlpatterns = [
         views.MasterDetailView.as_view(),
         name="master_detail"
     ),
+
+    path(
+        "client-profile/setup/",
+        views.ClientProfileUpdateView.as_view(),
+        name="client_profile_setup",
+    ),
 ]

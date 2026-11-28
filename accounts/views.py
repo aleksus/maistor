@@ -17,6 +17,7 @@ from services.models import ServiceCategory, Service
 from .forms import (
     UserRegisterForm,
     MasterProfileForm,
+    ClientProfileForm,
 )
 from .models import MasterProfile, ClientProfile
 
@@ -55,7 +56,7 @@ class RegisterView(CreateView):
         if user.role == "master":
             return redirect("master_profile_setup")
 
-        return redirect("home")
+        return redirect("client_profile_setup")
 
 
 class MasterProfileSetupView(
@@ -73,6 +74,29 @@ class MasterProfileSetupView(
 
     def get_object(self, queryset=None):
         return self.request.user.master_profile
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            return redirect("home")
+
+        return super().handle_no_permission()
+
+
+class ClientProfileUpdateView(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    UpdateView
+):
+    model = ClientProfile
+    form_class = ClientProfileForm
+    template_name = "accounts/client_profile_setup.html"
+    success_url = reverse_lazy("home")
+
+    def test_func(self):
+        return self.request.user.role == "client"
+
+    def get_object(self, queryset=None):
+        return self.request.user.client_profile
 
     def handle_no_permission(self):
         if self.request.user.is_authenticated:

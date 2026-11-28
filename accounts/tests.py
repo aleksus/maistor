@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
 from .forms import MasterProfileForm
+from .models import ClientProfile
 from .models import MasterProfile
 
 User = get_user_model()
@@ -67,3 +69,72 @@ class MasterProfileFormTests(TestCase):
             self.profile.description,
             "Ново описание",
         )
+
+
+class ClientProfileUpdateViewTests(TestCase):
+    def setUp(self):
+        self.client_user = User.objects.create_user(
+            username="test_client",
+            email="client@example.com",
+            password="TestPassword123!",
+            role=User.Role.CLIENT,
+        )
+
+        self.profile = ClientProfile.objects.create(
+            user=self.client_user,
+            city="София",
+            address="бул. България 10",
+        )
+
+        self.url = reverse("client_profile_setup")
+
+    def test_client_can_access_own_profile(self):
+        self.client.force_login(self.client_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "accounts/client_profile_setup.html",
+        )
+
+    def test_client_can_update_own_profile(self):
+        self.client.force_login(self.client_user)
+
+        response = self.client.post(
+            self.url,
+            {
+                "city": "Пловдив",
+                "address": "ул. Главна 15",
+            },
+        )
+
+        self.profile.refresh_from_db()
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(self.profile.city, "Пловдив")
+        self.assertEqual(
+            self.profile.address,
+            "ул. Главна 15",
+        )
+
+    def test_master_cannot_access_client_profile(self):
+        master = User.objects.create_user(
+            username="test_master",
+            email="master@example.com",
+            password="TestPassword123!",
+            role=User.Role.MASTER,
+        )
+
+        self.client.force_login(master)
+
+        response = self.client.get(self.url)
+
+        self.assertRedirects(response, reverse("home"))
+
+    def test_anonymous_user_is_redirected_to_login(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("next=", response.url)

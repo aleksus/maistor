@@ -27,7 +27,6 @@ class UserRegisterForm(UserCreationForm):
         return role
 
 
-
 class MasterProfileForm(forms.ModelForm):
     username = forms.CharField(
         label="Потребителско име",
@@ -72,7 +71,6 @@ class MasterProfileForm(forms.ModelForm):
             self.fields["email"].initial = self.instance.user.email
 
 
-
 class ClientProfileForm(forms.ModelForm):
     class Meta:
         model = ClientProfile
@@ -80,3 +78,29 @@ class ClientProfileForm(forms.ModelForm):
             "city",
             "address",
         ]
+        labels = {
+            "city": "Град",
+            "address": "Адрес",
+        }
+        help_texts = {
+            "city": "Посочете града, в който търсите услуги.",
+            "address": "Можете да посочите адрес за по-лесна комуникация с майстора.",
+        }
+        error_messages = {
+            "city": {
+                "max_length": "Името на града не може да надвишава 100 символа.",
+            },
+            "address": {
+                "max_length": "Адресът не може да надвишава 255 символа.",
+            },
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["city"].widget.attrs.update({
+            "placeholder": "Например: София",
+        })
+        self.fields["address"].widget.attrs.update({
+            "placeholder": "Например: бул. България 10",
+        })
