@@ -19,7 +19,8 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 
 from services.models import ServiceCategory
-
+from rest_framework.schemas import get_schema_view
+from django.views.generic import TemplateView
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -29,6 +30,12 @@ class HomeView(TemplateView):
         context["categories"] = ServiceCategory.objects.all()
         return context
 
+
+api_schema_view = get_schema_view(
+    title="Majstor.bg API",
+    description="REST API за услуги, заявки и оферти.",
+    version="1.0.0",
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -40,4 +47,9 @@ urlpatterns = [
     path('reviews/', include('reviews.urls')),
     path('services/', include('services.urls')),
     path("api/", include("api.urls")),
+    path(
+        "api/schema/",
+        api_schema_view,
+        name="api-schema",
+    ),
 ]
