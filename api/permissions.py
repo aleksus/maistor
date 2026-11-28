@@ -6,6 +6,16 @@ class IsClient(BasePermission):
 
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated
-            and request.user.role == "client"
+                request.user.is_authenticated
+                and request.user.role == "client"
+        )
+
+
+class IsMaster(BasePermission):
+    message = "Само майстори могат да извършват тази операция."
+
+    def has_permission(self, request, view):
+        return (
+                request.user.is_authenticated
+                and request.user.role == "master"
         )
