@@ -51,6 +51,7 @@ PROJECT_APPS = [
     "reviews",
     "services",
     "favorites",
+    "api",
 ]
 
 INSTALLED_APPS = [
