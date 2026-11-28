@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from requests.models import JobRequest
+from job_requests.models import JobRequest
 from services.models import Service, ServiceCategory
 
 

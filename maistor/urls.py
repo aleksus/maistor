@@ -36,7 +36,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path("favorites/", include("favorites.urls")),
     path('offers/', include('offers.urls')),
-    path('requests/', include('requests.urls')),
+    path('requests/', include('job_requests.urls')),
     path('reviews/', include('reviews.urls')),
     path('services/', include('services.urls')),
     path("api/", include("api.urls")),

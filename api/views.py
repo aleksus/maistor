@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from requests.models import JobRequest
+from job_requests.models import JobRequest
 from services.models import Service, ServiceCategory
 from .permissions import IsClient
 from .serializers import JobRequestSerializer

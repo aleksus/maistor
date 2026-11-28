@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView
 
 from offers.models import Offer
-from requests.models import JobRequest
+from job_requests.models import JobRequest
 from .forms import ReviewForm
 from .models import Review
 

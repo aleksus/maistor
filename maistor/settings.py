@@ -47,7 +47,7 @@ ALLOWED_HOSTS = [
 PROJECT_APPS = [
     "accounts",
     "offers",
-    "requests",
+    "job_requests.apps.RequestsConfig",
     "reviews",
     "services",
     "favorites",

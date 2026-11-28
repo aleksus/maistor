@@ -6,7 +6,7 @@ from django.views import View
 from django.views.generic import CreateView, ListView
 
 from accounts.models import MasterProfile
-from requests.models import JobRequest
+from job_requests.models import JobRequest
 from .forms import OfferForm
 from .models import Offer
 
