@@ -380,3 +380,38 @@ class OfferSerializerTests(APITestCase):
             ).count(),
             1,
         )
+
+    def test_master_without_profile_cannot_create_offer(self):
+        master_without_profile = User.objects.create_user(
+            username="master_no_profile",
+            email="no_profile@example.com",
+            password="TestPassword123!",
+            role="master",
+        )
+
+        self.client.force_authenticate(
+            user=master_without_profile
+        )
+
+        response = self.client.post(
+            self.url,
+            {
+                "job_request": self.job_request.id,
+                "price": "850.00",
+                "message": "Оферта",
+                "estimated_days": 5,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertIn(
+            "Нямаш създаден профил на майстор.",
+            str(response.data)
+        )
+
+        self.assertEqual(Offer.objects.count(), 0)
